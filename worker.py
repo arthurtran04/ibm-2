@@ -12,7 +12,8 @@ from langchain_community.embeddings import HuggingFaceInstructEmbeddings  # New 
 from langchain_community.document_loaders import PyPDFLoader  # New import path
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma  # New import path
-from langchain_ibm import WatsonxLLM
+from langchain.llms import HuggingFaceHub
+# from langchain_ibm import WatsonxLLM
 
 # Check for GPU availability and set the appropriate device for computation.
 DEVICE = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -26,35 +27,59 @@ embeddings = None
 # Function to initialize the language model and its embeddings
 def init_llm():
     global llm_hub, embeddings
+    # Set up the environment variable for HuggingFace and initialize the desired model.
+    os.environ["HUGGINGFACEHUB_API_TOKEN"] = "YOUR API KEY"
 
-    logger.info("Initializing WatsonxLLM and embeddings...")
-
-    # Llama Model Configuration
-    MODEL_ID = "meta-llama/llama-3-3-70b-instruct"
-    WATSONX_URL = "https://us-south.ml.cloud.ibm.com"
-    PROJECT_ID = "skills-network"
-
-    # Use the same parameters as before:
-    #   MAX_NEW_TOKENS: 256, TEMPERATURE: 0.1
-    model_parameters = {
-        # "decoding_method": "greedy",
-        "max_new_tokens": 256,
-        "temperature": 0.1,
-    }
-
-    # Initialize Llama LLM using the updated WatsonxLLM API
-    llm_hub = WatsonxLLM(
-        model_id=MODEL_ID,
-        url=WATSONX_URL,
-        project_id=PROJECT_ID,
-        params=model_parameters
-    )
-    logger.debug("WatsonxLLM initialized: %s", llm_hub)
+    # repo name for the model
+    model_id = "tiiuae/falcon-7b-instruct"
+    # load the model into the HuggingFaceHub
+    llm_hub = HuggingFaceHub(repo_id=model_id, model_kwargs={"temperature": 0.1, "max_new_tokens": 600, "max_length": 600})
 
     #Initialize embeddings using a pre-trained model to represent the text data.
-    embeddings =  # create object of Hugging Face Instruct Embeddings with (model_name,  model_kwargs={"device": DEVICE} )
+    embeddings = HuggingFaceInstructEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2", model_kwargs={"device": DEVICE}
+    )
+# def init_llm():
+#     global llm_hub, embeddings
+
+#     logger.info("Initializing WatsonxLLM and embeddings...")
+
+#     # Llama Model Configuration
+#     MODEL_ID = "meta-llama/llama-3-3-70b-instruct"
+#     WATSONX_URL = "https://us-south.ml.cloud.ibm.com"
+#     PROJECT_ID = "skills-network"
+
+#     # Use the same parameters as before:
+#     #   MAX_NEW_TOKENS: 256, TEMPERATURE: 0.1
+#     model_parameters = {
+#         # "decoding_method": "greedy",
+#         "max_new_tokens": 256,
+#         "temperature": 0.1,
+#     }
+
+#     # Initialize Llama LLM using the updated WatsonxLLM API
+#     llm_hub = WatsonxLLM(
+#         model_id=MODEL_ID,
+#         url=WATSONX_URL,
+#         project_id=PROJECT_ID,
+#         params=model_parameters
+#     )
+#     logger.debug("WatsonxLLM initialized: %s", llm_hub)
+
+#     # Initialize embeddings using a pre-trained model to represent the text data.
+#     ### --> if you are using huggingFace API:
+#     # Set up the environment variable for HuggingFace and initialize the desired model, and load the model into the HuggingFaceHub
+#     # dont forget to remove llm_hub for watsonX
+
+#     # os.environ["HUGGINGFACEHUB_API_TOKEN"] = "YOUR API KEY"
+#     # model_id = "tiiuae/falcon-7b-instruct"
+#     #llm_hub = HuggingFaceHub(repo_id=model_id, model_kwargs={"temperature": 0.1, "max_new_tokens": 600, "max_length": 600})
     
-    logger.debug("Embeddings initialized with model device: %s", DEVICE)
+#     embeddings = HuggingFaceInstructEmbeddings(
+#         model_name="sentence-transformers/all-MiniLM-L6-v2", 
+#         model_kwargs={"device": DEVICE}
+#     )
+#     logger.debug("Embeddings initialized with model device: %s", DEVICE)
 
 # Function to process a PDF document
 def process_document(document_path):
@@ -62,12 +87,12 @@ def process_document(document_path):
 
     logger.info("Loading document from path: %s", document_path)
     # Load the document
-    loader =  # ---> use PyPDFLoader and document_path from the function input parameter <---
+    loader = PyPDFLoader(document_path)
     documents = loader.load()
     logger.debug("Loaded %d document(s)", len(documents))
 
-    # Split the document into chunks, set chunk_size=1024, and chunk_overlap=64. assign it to variable text_splitter
-    text_splitter = # ---> use Recursive Character TextSplitter and specify the input parameters <---
+    # Split the document into chunks
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=64)
     texts = text_splitter.split_documents(documents)
     logger.debug("Document split into %d text chunks", len(texts))
 
@@ -93,7 +118,7 @@ def process_document(document_path):
         # chain_type_kwargs={"prompt": prompt}  # if you are using a prompt template, uncomment this part
     )
     logger.info("RetrievalQA chain created successfully.")
-    
+
 # Function to process a user prompt
 def process_prompt(prompt):
     global conversation_retrieval_chain
@@ -106,9 +131,7 @@ def process_prompt(prompt):
     logger.debug("Model response: %s", answer)
 
     # Update the chat history
-    # TODO: Append the prompt and the bot's response to the chat history using chat_history.append and pass `prompt` `answer` as arguments
-    # --> write your code here <--	
-    
+    chat_history.append((prompt, answer))
     logger.debug("Chat history updated. Total exchanges: %d", len(chat_history))
 
     # Return the model's response
@@ -117,3 +140,4 @@ def process_prompt(prompt):
 # Initialize the language model
 init_llm()
 logger.info("LLM and embeddings initialization complete.")
+
