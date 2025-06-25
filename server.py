@@ -4,6 +4,8 @@ It is responsible for handling the requests from the frontend and processing the
 '''
 # Importing the necessary libraries
 import logging
+import os
+import tempfile
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 import worker  # Import the worker module
@@ -53,10 +55,17 @@ def process_document_route():
 
     file = request.files['file']  # Extract the uploaded file from the request
 
-    file_path = file.filename  # Define the path where the file will be saved
-    file.save(file_path)  # Save the file
-
-    worker.process_document(file_path)  # Process the document using the worker module
+    # Create a temporary file to avoid saving it in the project directory
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
+        file.save(temp.name)
+        temp_path = temp.name
+    
+    try:
+        # Process the document using the worker module with the temporary path
+        worker.process_document(temp_path)
+    finally:
+        # Clean up the temporary file after processing
+        os.remove(temp_path)
 
     # Return a success message as JSON
     return jsonify({

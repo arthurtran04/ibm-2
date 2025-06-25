@@ -34,7 +34,7 @@ def init_llm():
     os.environ["HUGGINGFACEHUB_API_TOKEN"] = os.getenv("HUGGINGFACEHUB_API_TOKEN", "")
 
     # repo name for the model
-    model_id = "tiiuae/falcon-7b-instruct"
+    model_id = "meta-llama/Llama-3.1-8B-Instruct"
     # load the model into the HuggingFaceHub
     llm_hub = HuggingFaceHub(repo_id=model_id, model_kwargs={"temperature": 0.1, "max_new_tokens": 600, "max_length": 600})
 
@@ -102,4 +102,3 @@ def process_prompt(prompt):
 # Initialize the language model
 init_llm()
 logger.info("LLM and embeddings initialization complete.")
-
