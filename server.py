@@ -1,5 +1,9 @@
+'''
+This is the main server file for the PDF chatbot.
+It is responsible for handling the requests from the frontend and processing the documents.
+'''
+# Importing the necessary libraries
 import logging
-import os
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 import worker  # Import the worker module
@@ -12,15 +16,22 @@ app.logger.setLevel(logging.ERROR)
 # Define the route for the index page
 @app.route('/', methods=['GET'])
 def index():
+    '''
+    This function renders the index.html template.
+    '''
     return render_template('index.html')  # Render the index.html template
 
 # Define the route for processing messages
 @app.route('/process-message', methods=['POST'])
 def process_message_route():
+    '''
+    This function processes the user's message and returns the bot's response.
+    '''
     user_message = request.json['userMessage']  # Extract the user's message from the request
     print('user_message', user_message)
 
-    bot_response = worker.process_prompt(user_message)  # Process the user's message using the worker module
+    # Process the user's message using the worker module
+    bot_response = worker.process_prompt(user_message)
 
     # Return the bot's response as JSON
     return jsonify({
@@ -30,6 +41,9 @@ def process_message_route():
 # Define the route for processing documents
 @app.route('/process-document', methods=['POST'])
 def process_document_route():
+    '''
+    This function processes the uploaded document and returns the bot's response.
+    '''
     # Check if a file was uploaded
     if 'file' not in request.files:
         return jsonify({
@@ -46,10 +60,10 @@ def process_document_route():
 
     # Return a success message as JSON
     return jsonify({
-        "botResponse": "Thank you for providing your PDF document. I have analyzed it, so now you can ask me any "
-                       "questions regarding it!"
+        "botResponse": "Thank you for providing your PDF document. I have analyzed it, "
+                       "so now you can ask me any questions regarding it!"
     }), 200
 
 # Run the Flask app
 if __name__ == "__main__":
-    app.run(debug=True, port=8000, host='0.0.0.0')
+    app.run(debug=True)
