@@ -8,3 +8,4 @@ torch==2.2.0
 sentence-transformers==2.2.2
 InstructorEmbedding==1.0.0
 simsimd==6.4.9
+python-dotenv==1.1.1
