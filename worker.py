@@ -118,7 +118,7 @@ def process_prompt(prompt):
         model=MODEL_ID,
         messages=messages,
         temperature=0.1,
-        max_tokens=1000  # Thêm giới hạn token để tránh response quá dài
+        max_tokens=1000  # Add token limit to avoid long response
     )
     answer = answer.choices[0].message.content
     logger.debug("Model response: %s", answer)
