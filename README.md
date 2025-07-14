@@ -53,11 +53,7 @@ simple-RAG/
 
 ## Features
 
-- **Plug-and-Play RAG Pipeline**: Simple to set up and extend for your own datasets.
-- **Customizable Retriever**: Easily swap or enhance the retrieval back-end (vector DBs, Elasticsearch, etc.).
-- **Modular Generation**: Integrates with your choice of LLM (OpenAI, HuggingFace, etc.).
-- **Fast and Lightweight**: Minimal external dependencies, ready for rapid prototyping.
-- **Clear Example Usage**: See how to query your own data with just a few lines of code.
+
 
 ## Installation
 
@@ -129,12 +125,15 @@ To start the application, run the `server.py` file:
    $ python server.py
    ```
 This application will run locally at `http://127.0.0.1:5000`:
-
-<img width="600rem" alt="Webpage" src=""/>
+<div align="center">
+  <img width="600rem" alt="Webpage" src="https://github.com/user-attachments/assets/d0aec357-40b1-4aa0-913c-78f46318edb8" />
+</div>
 
 Upload your PDF file and enter your prompt in the textbox below, and the chatbot will respond:
 
-<img width="600rem" alt="Example" src=""/>
+<div align="center">
+  <img align="center" width="600rem" alt="Example" src="https://github.com/user-attachments/assets/a0824a84-7bb5-438e-a2f6-b6eaf1aefc3d" />
+</div>
 
 To stop the application, use `Ctrl + C` in the Terminal
 
