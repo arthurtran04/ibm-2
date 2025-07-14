@@ -1,12 +1,13 @@
-# Chatbot Application using DeepSeek-V3 model
+<div align="center">
+  <h1>Simple RAG (Retrieval Augemented Generation)</h1>
 
-## Introduction
+![RAG Logo](https://img.shields.io/badge/RAG-Retrieval%20Augmented%20Generation-blueviolet) ![License](https://img.shields.io/github/license/arthurtran04/ibm-2) ![Built with](https://img.shields.io/badge/Built%20With-Python-blue?logo=python)
+</div>
 
-This repository presents a **Chatbot Application** powered by the **DeepSeek-V3 model**. Designed with a mix of **CSS**, **JavaScript**, **Python**, and **HTML**, it combines visually appealing design with intelligent conversational capabilities. The project exemplifies the seamless integration of AI-driven dialogue systems with a polished user experience.
+This repo is a minimalist yet powerful Retrieval-Augmented Generation (RAG) application. It combines large language models (LLMs) with external document retrieval, allowing you to build smarter, context-aware AI apps that can reference your own data and knowledge bases. Whether you're prototyping AI chatbots, developing knowledge assistants, or experimenting with RAG techniques, this repo offers a clean, extensible starting point.
 
 ## Table of Contents
 
-- [Introduction](#introduction)
 - [Prerequirements](#prerequirements)
 - [Project Structure](#project-structure)
 - [Model](#model)
@@ -24,16 +25,17 @@ This repository presents a **Chatbot Application** powered by the **DeepSeek-V3 
 ## Project Structure
 
 ```
-chatbot/
+simple-RAG/
 ├── static/
-│   ├── css/
-│   │   └── style.css
-│   ├── script.js
-│   └── icons...
+│   ├── style.css
+│   └── script.js
 ├── templates/
 │   └── index.html
 ├── .gitignore
-├── app.py
+├── server.py
+├── worker.py
+├── .env.example
+├── Dockerfile
 ├── requirements.txt
 ├── LICENSE
 └── README.md
@@ -41,13 +43,15 @@ chatbot/
 
 ## Model
 
-- [deepseek-ai/DeepSeek-V3](https://huggingface.co/deepseek-ai/DeepSeek-V3)
+- [HuggingFaceTB/SmolLM3-3B](https://huggingface.co/HuggingFaceTB/SmolLM3-3B) (You can use different models)
 
 ## Features
 
-- Chatbot Application using DeepSeek-V3 model from Hugging Face
-- Using Flask for back-end development
-- Using Pylint for code analysis
+- **Plug-and-Play RAG Pipeline**: Simple to set up and extend for your own datasets.
+- **Customizable Retriever**: Easily swap or enhance the retrieval back-end (vector DBs, Elasticsearch, etc.).
+- **Modular Generation**: Integrates with your choice of LLM (OpenAI, HuggingFace, etc.).
+- **Fast and Lightweight**: Minimal external dependencies, ready for rapid prototyping.
+- **Clear Example Usage**: See how to query your own data with just a few lines of code.
 
 ## Installation
 
@@ -56,33 +60,39 @@ To install this project, open your Terminal and follow these steps:
 1. Clone the repository:
 
     ```sh
-    $ git clone https://github.com/arthurtran04/chatbot.git
+    $ git clone https://github.com/arthurtran04/simple-RAG.git
     ```
 
-2. Change the directory to `chatbot`:
+2. Change the directory to `simple-RAG`:
 
     ```sh
-    $ cd "$(find . -type d -name "chatbot")"
+    $ cd "$(find . -type d -name "simple-RAG")"
     ```
 
-3. Create a Python virtual environment `venv` and install the required dependencies:
+3. Create a Python virtual environment `.venv` and install the required dependencies:
 
     ```sh
-    $ python -m venv venv
-    source venv/bin/activate
+    $ python -m venv .venv
+    source .venv/bin/activate
     pip install -r requirements.txt
     ```
 
-4. Create a `.env` file to save your API token:
+4. Set up environment variables:
 
    ```sh
-   $ touch .env
-   echo "API_TOKEN=" > .env
+   $ cp .env.example .env
+   ```
+
+5. Configure your `.env` file:
+
+   ```env
+   # Hugging Face API Token
+   HF_TOKEN=
    ```
 
 ## How to get API Access Token
 
-<p align="center">
+<div align="center">
   <div style="display: inline-block; text-align: center; margin: 10px;">
     <p>1. Go to <a href="https://huggingface.co">Hugging Face website</a>, click your avatar and click "Access Tokens"</p>
     <img src="https://github.com/user-attachments/assets/55e6e178-55dd-4b6b-b738-e3c6a9c51206" width="300rem" style="vertical-align: top;" />
@@ -104,24 +114,20 @@ To install this project, open your Terminal and follow these steps:
     <img src="https://github.com/user-attachments/assets/8a087c0b-51dd-40c2-9576-c9529ed915ed" width="600rem" style="vertical-align: top;" />
     <img src="https://github.com/user-attachments/assets/b3c16ac9-f538-44fe-a14f-55800e30d53d" width="600rem" style="vertical-align: top;" />
   </div>
-</p>
+</div>
 
 ## Usage
 
-To start the application, run the `app.py` file:
+To start the application, run the `server.py` file:
 
    ```sh
-   $ python app.py
+   $ python server.py
    ```
 This application will run locally at `http://127.0.0.1:5000`:
 
-<img width="600rem" alt="Terminal" src="https://github.com/user-attachments/assets/924a34a2-712d-44a6-8a8d-6f47b35c6b5b"/>
-
-The UI:
-
 <img width="600rem" alt="Webpage" src="https://github.com/user-attachments/assets/bb2e62cd-aa9d-4303-ad74-f72e70eaa9c0"/>
 
-Enter your prompt in the textbox below, and the chatbot will respond:
+Upload your PDF file and enter your prompt in the textbox below, and the chatbot will respond:
 
 <img width="600rem" alt="Example" src="https://github.com/user-attachments/assets/07cf32c0-3d37-454c-913d-425fd0461319"/>
 
