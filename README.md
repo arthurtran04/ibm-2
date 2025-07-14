@@ -53,8 +53,8 @@ simple-RAG/
 flowchart TD
     A[User #40;Web Browser#41;] --> B[Flask Web Server<br/>#40;server.py#41;]
     B --> C[Worker<br/>#40;worker.py#41;]
-    C --> D[Vector Store<br/>#40;Chroma#41;]
-    C --> E[Hugging Face Model<br/>#40;SmolLM3-3B#41;]
+    C --> D[Vector DB<br/>#40;Chroma#41;]
+    C --> E[LLM]
     D -- Retrieves context --> C
     E -- Generates answer --> C
     C -- Responds --> B
