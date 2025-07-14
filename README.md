@@ -51,10 +51,12 @@ simple-RAG/
 
 ```mermaid
 flowchart TD
-    A[User #40;Web Browser#41;] --> B[Flask Web Server<br/>#40;server.py#41;]
+    A[User #40;Web Browser#41;] -- Prompt --> B[Flask Web Server<br/>#40;server.py#41;]
     B --> C[Worker<br/>#40;worker.py#41;]
+    F[PDF file] -- Store --> D
     C --> D[Vector DB<br/>#40;Chroma#41;]
     C --> E[LLM]
+    A -- Upload --> F
     D -- Retrieves context --> C
     E -- Generates answer --> C
     C -- Responds --> B
