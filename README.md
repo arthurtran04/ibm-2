@@ -5,7 +5,7 @@
 ![RAG Logo](https://img.shields.io/badge/RAG-Retrieval%20Augmented%20Generation-blueviolet) ![License](https://img.shields.io/github/license/arthurtran04/ibm-2) ![Built with](https://img.shields.io/badge/Built%20With-Python-blue?logo=python)
 </div>
 
-
+This project is a lightweight web app for question-answering over PDFs using Retrieval Augmented Generation (RAG). Users upload a PDF, ask questions, and get answers based on the document content via a Hugging Face model.
 
 ## Table of Contents
 
@@ -49,11 +49,25 @@ simple-RAG/
 
 ## Architecture
 
-
+```mermaid
+flowchart TD
+    A[User #40;Web Browser#41;] --> B[Flask Web Server<br/>#40;server.py#41;]
+    B --> C[Worker<br/>#40;worker.py#41;]
+    C --> D[Vector Store<br/>#40;Chroma#41;]
+    C --> E[Hugging Face Model<br/>#40;SmolLM3-3B#41;]
+    D -- Retrieves context --> C
+    E -- Generates answer --> C
+    C -- Responds --> B
+    B -- Returns answer --> A
+```
 
 ## Features
 
-
+- Upload and query PDF documents
+- RAG-powered chatbot interface
+- Uses Hugging Face models
+- Local semantic search with Chroma
+- Light/dark mode UI
 
 ## Installation
 
