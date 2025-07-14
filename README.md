@@ -4,13 +4,14 @@
 ![RAG Logo](https://img.shields.io/badge/RAG-Retrieval%20Augmented%20Generation-blueviolet) ![License](https://img.shields.io/github/license/arthurtran04/ibm-2) ![Built with](https://img.shields.io/badge/Built%20With-Python-blue?logo=python)
 </div>
 
-This repo is a minimalist yet powerful Retrieval-Augmented Generation (RAG) application. It combines large language models (LLMs) with external document retrieval, allowing you to build smarter, context-aware AI apps that can reference your own data and knowledge bases. Whether you're prototyping AI chatbots, developing knowledge assistants, or experimenting with RAG techniques, this repo offers a clean, extensible starting point.
+
 
 ## Table of Contents
 
 - [Prerequirements](#prerequirements)
 - [Project Structure](#project-structure)
 - [Model](#model)
+- [Architecture](#architecture)
 - [Features](#features)
 - [Installation](#installation)
 - [How to get API Access Token](#how-to-get-api-access-token)
@@ -44,6 +45,10 @@ simple-RAG/
 ## Model
 
 - [HuggingFaceTB/SmolLM3-3B](https://huggingface.co/HuggingFaceTB/SmolLM3-3B) (You can use different models)
+
+## Architecture
+
+
 
 ## Features
 
