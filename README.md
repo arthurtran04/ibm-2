@@ -1,4 +1,5 @@
 <div align="center">
+  <img width="70" height="70" alt="image" src="https://github.com/user-attachments/assets/66648b34-8e6e-4324-906c-c48b76f94cad" />
   <h1>Simple RAG (Retrieval Augemented Generation)</h1>
 
 ![RAG Logo](https://img.shields.io/badge/RAG-Retrieval%20Augmented%20Generation-blueviolet) ![License](https://img.shields.io/github/license/arthurtran04/ibm-2) ![Built with](https://img.shields.io/badge/Built%20With-Python-blue?logo=python)
