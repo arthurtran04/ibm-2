@@ -130,11 +130,11 @@ To start the application, run the `server.py` file:
    ```
 This application will run locally at `http://127.0.0.1:5000`:
 
-<img width="600rem" alt="Webpage" src="https://github.com/user-attachments/assets/bb2e62cd-aa9d-4303-ad74-f72e70eaa9c0"/>
+<img width="600rem" alt="Webpage" src=""/>
 
 Upload your PDF file and enter your prompt in the textbox below, and the chatbot will respond:
 
-<img width="600rem" alt="Example" src="https://github.com/user-attachments/assets/07cf32c0-3d37-454c-913d-425fd0461319"/>
+<img width="600rem" alt="Example" src=""/>
 
 To stop the application, use `Ctrl + C` in the Terminal
 
