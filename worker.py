@@ -1,104 +1,135 @@
+# Import necessary libraries
 import os
 import torch
 import logging
-from dotenv import load_dotenv
-
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
-from langchain_core.prompts import PromptTemplate  # Updated import per deprecation notice
-from langchain.chains import RetrievalQA
-from langchain_community.embeddings import HuggingFaceInstructEmbeddings  # New import path
-from langchain_community.document_loaders import PyPDFLoader  # New import path
+from huggingface_hub import InferenceClient
+from langchain_community.embeddings import HuggingFaceInstructEmbeddings
+from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma  # New import path
-from langchain.llms import HuggingFaceHub
-
-# Check for GPU availability and set the appropriate device for computation.
-DEVICE = "cuda:0" if torch.cuda.is_available() else "cpu"
-
-# Global variables
-conversation_retrieval_chain = None
-chat_history = []
-llm_hub = None
-embeddings = None
+from langchain_community.vectorstores import Chroma
+from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Function to initialize the language model and its embeddings
+# Configure logging to display debug messages
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+# Initialize device to use GPU if available, otherwise use CPU
+DEVICE = "cuda:0" if torch.cuda.is_available() else "cpu"
+
+# Initialize global variables
+conversation_retrieval_chain = None
+chat_history = []
+embeddings = None
+inference_client = None
+
+# Define the model ID for the InferenceClient
+MODEL_ID = "HuggingFaceTB/SmolLM3-3B"
+
+
+# Initialize InferenceClient and embeddings
 def init_llm():
-    global llm_hub, embeddings
-    # Set up the environment variable for HuggingFace and initialize the desired model.
-    os.environ["HUGGINGFACEHUB_API_TOKEN"] = os.getenv("HUGGINGFACEHUB_API_TOKEN", "")
+    # Use global variables to store embeddings and inference client
+    global embeddings, inference_client
+    logger.info("Initializing InferenceClient and embeddings...")
 
-    # repo name for the model
-    model_id = "meta-llama/Llama-3.1-8B-Instruct"
-    # load the model into the HuggingFaceHub
-    llm_hub = HuggingFaceHub(repo_id=model_id, model_kwargs={"temperature": 0.1, "max_new_tokens": 600, "max_length": 600})
-
-    #Initialize embeddings using a pre-trained model to represent the text data.
-    embeddings = HuggingFaceInstructEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2", model_kwargs={"device": DEVICE}
+    # InferenceClient requires a Hugging Face token
+    if "HF_TOKEN" not in os.environ:
+        logger.error("Hugging Face token (HF_TOKEN) not found in environment variables.")
+        raise EnvironmentError("Please set the HF_TOKEN environment variable with your Hugging Face token.")
+    
+    # Initialize InferenceClient and embeddings
+    inference_client = InferenceClient(
+        token=os.environ["HF_TOKEN"]
     )
+    embeddings = HuggingFaceInstructEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2",
+        model_kwargs={"device": DEVICE}
+    )
+    logger.debug("InferenceClient and embeddings initialized.")
 
-# Function to process a PDF document
+
+# Process PDF document
 def process_document(document_path):
+    # Use global variable to store the conversation retrieval chain
     global conversation_retrieval_chain
-
     logger.info("Loading document from path: %s", document_path)
-    # Load the document
+
+    # Check if the document exists
+    if not os.path.exists(document_path):
+        logger.error("Document not found at path: %s", document_path)
+        raise FileNotFoundError(f"Document not found at path: {document_path}")
+    
+    # Load the document using PyPDFLoader
     loader = PyPDFLoader(document_path)
     documents = loader.load()
     logger.debug("Loaded %d document(s)", len(documents))
 
-    # Split the document into chunks
+    # Split the document into text chunks
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=64)
     texts = text_splitter.split_documents(documents)
     logger.debug("Document split into %d text chunks", len(texts))
 
-    # Create an embeddings database using Chroma from the split text chunks.
-    logger.info("Initializing Chroma vector store from documents...")
+    # Create a vector store using Chroma
     db = Chroma.from_documents(texts, embedding=embeddings)
     logger.debug("Chroma vector store initialized.")
 
-    # Optional: Log available collections if accessible (this may be internal API)
-    try:
-        collections = db._client.list_collections()  # _client is internal; adjust if needed
-        logger.debug("Available collections in Chroma: %s", collections)
-    except Exception as e:
-        logger.warning("Could not retrieve collections from Chroma: %s", e)
+    # Create a retriever from the vector store and save retriever for future use
+    conversation_retrieval_chain = db.as_retriever(search_type="mmr", search_kwargs={'k': 6, 'lambda_mult': 0.25})
+    logger.info("Retriever created successfully.")
 
-    # Build the QA chain, which utilizes the LLM and retriever for answering questions. 
-    conversation_retrieval_chain = RetrievalQA.from_chain_type(
-        llm=llm_hub,
-        chain_type="stuff",
-        retriever=db.as_retriever(search_type="mmr", search_kwargs={'k': 6, 'lambda_mult': 0.25}),
-        return_source_documents=False,
-        input_key="question"
-        # chain_type_kwargs={"prompt": prompt}  # if you are using a prompt template, uncomment this part
-    )
-    logger.info("RetrievalQA chain created successfully.")
 
-# Function to process a user prompt
+# Send prompt to InferenceClient and return the result
 def process_prompt(prompt):
+    # Use global variables for conversation retrieval chain and chat history
     global conversation_retrieval_chain
     global chat_history
-
     logger.info("Processing prompt: %s", prompt)
-    # Query the model using the new .invoke() method
-    output = conversation_retrieval_chain.invoke({"question": prompt, "chat_history": chat_history})
-    answer = output["result"]
+
+    # If there is a document, get context from retriever
+    context = ""
+    if conversation_retrieval_chain is not None:
+        docs = conversation_retrieval_chain.get_relevant_documents(prompt)
+        context = "\n".join([doc.page_content for doc in docs])
+
+    # Build messages array with chat history
+    messages = []
+    
+    # Add system message if there's document context
+    if context:
+        system_message = f"You are a helpful assistant. Use the following context from the document to answer questions:\n\n{context}\n\nAnswer based on the context provided and be helpful and accurate."
+        messages.append({"role": "system", "content": system_message})
+    
+    # Add chat history to messages
+    max_history_exchanges = 5  # limit the number to avoid exceeding the token limit
+    recent_history = chat_history[-max_history_exchanges:] if len(chat_history) > max_history_exchanges else chat_history
+    
+    for user_msg, assistant_msg in recent_history:
+        messages.append({"role": "user", "content": user_msg})
+        messages.append({"role": "assistant", "content": assistant_msg})
+    
+    # Add current user prompt
+    messages.append({"role": "user", "content": prompt})
+    
+    # Send messages to InferenceClient
+    answer = inference_client.chat_completion(
+        model=MODEL_ID,
+        messages=messages,
+        temperature=0.1,
+        max_tokens=1000  # Thêm giới hạn token để tránh response quá dài
+    )
+    answer = answer.choices[0].message.content
     logger.debug("Model response: %s", answer)
 
-    # Update the chat history
+    # Update chat history with the prompt and answer
     chat_history.append((prompt, answer))
     logger.debug("Chat history updated. Total exchanges: %d", len(chat_history))
 
-    # Return the model's response
     return answer
 
-# Initialize the language model
+
+# Initialize the LLM and embeddings
 init_llm()
-logger.info("LLM and embeddings initialization complete.")
+logger.info("InferenceClient and embeddings initialization complete.")
