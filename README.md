@@ -22,7 +22,7 @@ This project is a lightweight web app for question-answering over PDFs using Ret
 ## Prerequirements
 
 - ![Python 3.9](https://img.shields.io/badge/Python-3.9-blue) or above: [Download here](https://python.org/downloads)
-- Hugging Face account: [Sign up here](https://huggingface.co)
+- ![Hugging Face account](https://img.shields.io/badge/Hugging%20Face%20account-orange): [Sign up here](https://huggingface.co)
 
 ## Project Structure
 
